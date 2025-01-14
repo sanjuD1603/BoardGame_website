@@ -25,7 +25,7 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-gray-900 text-gray-100 dark">
       <Navbar user={user} />
       <Component {...pageProps} user={user} />
     </div>
