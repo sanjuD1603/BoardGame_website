@@ -79,7 +79,7 @@ export default function AddGame({ user }) {
       <h1 className="text-2xl font-bold mb-6">Add New Board Game</h1>
 
       {/* BGG Search Section */}
-      <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+      <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4">Search BoardGameGeek</h2>
         <div className="flex gap-2">
           <input
@@ -93,7 +93,7 @@ export default function AddGame({ user }) {
             type="button"
             onClick={handleSearch}
             disabled={searching}
-            className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-300"
           >
             {searching ? "Searching..." : "Search BGG"}
           </button>
