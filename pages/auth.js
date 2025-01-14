@@ -13,7 +13,7 @@ export default function Auth() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/setup-profile`,
         },
       });
       if (error) throw error;
@@ -30,7 +30,9 @@ export default function Auth() {
       setLoading(true);
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
-      alert("Check your email for the login link!");
+      alert(
+        "Check your email for the login link! You'll be asked to set up your username after logging in.",
+      );
     } catch (error) {
       alert(error.message);
     } finally {
