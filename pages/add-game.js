@@ -23,12 +23,13 @@ export default function AddGame({ user }) {
 
     try {
       setLoading(true);
-      const { error } = await supabase.from("games").insert([
-        {
-          ...gameData,
-          user_id: user.id,
-        },
-      ]);
+      const gameDataToSubmit = {
+        ...gameData,
+        user_id: user.id,
+        owner: gameData.owner.trim() || user.email, // Use owner input if provided, otherwise use email
+      };
+
+      const { error } = await supabase.from("games").insert([gameDataToSubmit]);
 
       if (error) throw error;
       router.push("/");
@@ -137,6 +138,23 @@ export default function AddGame({ user }) {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Owner Name
+          </label>
+          <input
+            type="text"
+            name="owner"
+            value={gameData.owner}
+            onChange={handleChange}
+            placeholder="Enter owner's name (optional)"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            If left empty, your email will be used as owner information
+          </p>
         </div>
 
         <button

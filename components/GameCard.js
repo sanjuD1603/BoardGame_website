@@ -61,6 +61,10 @@ export default function GameCard({ game, user, onDelete }) {
             Players: {game.min_players} - {game.max_players}
           </p>
           <p>Playing Time: {game.playing_time} minutes</p>
+          <p className="mt-2 text-gray-500">
+            Added by:{" "}
+            {game.profiles?.username || game.profiles?.full_name || "Anonymous"}
+          </p>
         </div>
       </div>
     </div>
