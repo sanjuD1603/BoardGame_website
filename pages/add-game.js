@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/router";
+import { searchBoardGame } from "../lib/bggApi";
 
 export default function AddGame({ user }) {
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [gameData, setGameData] = useState({
     title: "",
@@ -43,6 +46,59 @@ export default function AddGame({ user }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setGameData((prev) => ({
+      };
+      
+      const handleSearch = async (e) => {
+        e.preventDefault();
+        <h1 className="text-2xl font-bold mb-6">Add New Board Game</h1>
+        
+        {/* BGG Search Section */}
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h2 className="text-lg font-semibold mb-4">Search BoardGameGeek</h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter game name to search..."
+              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={searching}
+              className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              {searching ? "Searching..." : "Search BGG"}
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            Search BoardGameGeek to auto-fill game details
+          </p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+        if (!searchQuery.trim()) return;
+      
+        try {
+          setSearching(true);
+          const { data, error } = await searchBoardGame(searchQuery);
+          
+          if (error) {
+            alert(error);
+            return;
+          }
+      
+          setGameData(data);
+        } catch (error) {
+          alert('Error searching for game');
+          console.error(error);
+        } finally {
+          setSearching(false);
+        }
+      };
+      
+      return (
       ...prev,
       [name]: value,
     }));
