@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/router";
-import { searchBoardGame } from "../lib/bggApi";
+import { searchBoardGame, getGameDetails } from "../lib/bggApi";
 
 export default function AddGame({ user }) {
   const router = useRouter();
@@ -52,32 +52,13 @@ export default function AddGame({ user }) {
   const handleSelectGame = async (gameId) => {
     try {
       setSearching(true);
-      const response = await fetch(
-        `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`,
-      );
-      const xml = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xml, "text/xml");
+      const { data, error } = await getGameDetails(gameId);
 
-      const game = {
-        title:
-          xmlDoc.querySelector('name[type="primary"]')?.getAttribute("value") ||
-          "",
-        description: xmlDoc.querySelector("description")?.textContent || "",
-        image_url:
-          xmlDoc.querySelector("image")?.textContent ||
-          xmlDoc.querySelector("thumbnail")?.textContent ||
-          "",
-        min_players:
-          xmlDoc.querySelector("minplayers")?.getAttribute("value") || "",
-        max_players:
-          xmlDoc.querySelector("maxplayers")?.getAttribute("value") || "",
-        playing_time:
-          xmlDoc.querySelector("playingtime")?.getAttribute("value") || "",
-        owner: "",
-      };
+      if (error) {
+        throw new Error(error);
+      }
 
-      setGameData(game);
+      setGameData(data);
       setSearchResults([]); // Clear search results after selection
     } catch (error) {
       alert("Error fetching game details");
