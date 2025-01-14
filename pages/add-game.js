@@ -8,6 +8,7 @@ export default function AddGame({ user }) {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [gameData, setGameData] = useState({
     title: "",
     description: "",
@@ -32,16 +33,54 @@ export default function AddGame({ user }) {
 
     try {
       setSearching(true);
-      const { data, error } = await searchBoardGame(searchQuery);
+      const { matches, error } = await searchBoardGame(searchQuery);
 
       if (error) {
         alert(error);
         return;
       }
 
-      setGameData(data);
+      setSearchResults(matches || []);
     } catch (error) {
       alert("Error searching for game");
+      console.error(error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSelectGame = async (gameId) => {
+    try {
+      setSearching(true);
+      const response = await fetch(
+        `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`,
+      );
+      const xml = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xml, "text/xml");
+
+      const game = {
+        title:
+          xmlDoc.querySelector('name[type="primary"]')?.getAttribute("value") ||
+          "",
+        description: xmlDoc.querySelector("description")?.textContent || "",
+        image_url:
+          xmlDoc.querySelector("image")?.textContent ||
+          xmlDoc.querySelector("thumbnail")?.textContent ||
+          "",
+        min_players:
+          xmlDoc.querySelector("minplayers")?.getAttribute("value") || "",
+        max_players:
+          xmlDoc.querySelector("maxplayers")?.getAttribute("value") || "",
+        playing_time:
+          xmlDoc.querySelector("playingtime")?.getAttribute("value") || "",
+        owner: "",
+      };
+
+      setGameData(game);
+      setSearchResults([]); // Clear search results after selection
+    } catch (error) {
+      alert("Error fetching game details");
       console.error(error);
     } finally {
       setSearching(false);
@@ -81,22 +120,43 @@ export default function AddGame({ user }) {
       {/* BGG Search Section */}
       <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4">Search BoardGameGeek</h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Enter game name to search..."
-            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-          <button
-            type="button"
-            onClick={handleSearch}
-            disabled={searching}
-            className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-300"
-          >
-            {searching ? "Searching..." : "Search BGG"}
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter game name to search..."
+              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={searching}
+              className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-indigo-300"
+            >
+              {searching ? "Searching..." : "Search BGG"}
+            </button>
+          </div>
+
+          {searchResults.length > 0 && (
+            <div className="mt-2 bg-white rounded-md shadow-lg border border-gray-200">
+              <ul className="divide-y divide-gray-200">
+                {searchResults.map((game) => (
+                  <li
+                    key={game.id}
+                    className="p-3 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleSelectGame(game.id)}
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{game.name}</span>
+                      <span className="text-gray-500">{game.year}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <p className="mt-2 text-sm text-gray-500">
           Search BoardGameGeek to auto-fill game details
