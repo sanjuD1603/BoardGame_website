@@ -130,8 +130,7 @@ export default function AddGame({ user }) {
           title: data.title || "",
           description: data.description || "",
           image_url: data.image_url || "",
-          min_players: data.min_players || "1",
-          max_players: data.max_players || "1",
+          player_count: data.player_count || "2-4",
           playing_time: data.playing_time || "30",
           owner: "",
         });
@@ -254,28 +253,31 @@ export default function AddGame({ user }) {
           <label className="block text-sm font-medium text-gray-700">
             Image URL
           </label>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Player Count (e.g., 2-4)
-              </label>
-              <input
-                type="text"
-                name="player_count"
-                value={gameData.player_count}
-                onChange={handleChange}
-                required
-                placeholder="e.g., 2-4"
-                pattern="\d+-\d+"
-                title="Please use format: min-max (e.g., 2-4)"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
-            type="number" name="max_players" value={gameData.max_players}
+          <input
+            type="url"
+            name="image_url"
+            value={gameData.image_url}
             onChange={handleChange}
-            required min="1" className="mt-1 block w-full rounded-md
-            border-gray-300 shadow-sm focus:border-indigo-500
-            focus:ring-indigo-500" />
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Player Count (e.g., 2-4)
+            </label>
+            <input
+              type="text"
+              name="player_count"
+              value={gameData.player_count}
+              onChange={handleChange}
+              required
+              placeholder="e.g., 2-4"
+              pattern="\d+-\d+"
+              title="Please use format: min-max (e.g., 2-4)"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
           </div>
 
           <div>
