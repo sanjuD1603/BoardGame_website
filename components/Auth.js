@@ -1,18 +1,59 @@
-import { useState } from "react";
-import { auth } from "../lib/supabase";
+import { useState, useEffect } from "react";
+import { auth, supabase } from "../lib/supabase";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [persistSession, setPersistSession] = useState(true);
+
+  useEffect(() => {
+    // Check for existing session
+    checkUser();
+
+    // Set up auth state change listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        // Handle sign in
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        // User is already signed in
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      setLoading(false);
+    }
+  };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    const { error } = await auth.signIn(email, password);
+    const { error } = await auth.signIn(email, password, {
+      options: {
+        persistSession,
+      },
+    });
 
     if (error) {
       setMessage(error.message);
@@ -26,7 +67,11 @@ export default function Auth() {
     setLoading(true);
     setMessage("");
 
-    const { error } = await auth.signUp(email, password);
+    const { error } = await auth.signUp(email, password, {
+      options: {
+        persistSession,
+      },
+    });
 
     if (error) {
       setMessage(error.message);
@@ -63,6 +108,18 @@ export default function Auth() {
         </div>
 
         {message && <div className="text-sm text-red-400 mt-2">{message}</div>}
+
+        <div className="mb-4">
+          <label className="flex items-center text-gray-300">
+            <input
+              type="checkbox"
+              checked={persistSession}
+              onChange={(e) => setPersistSession(e.target.checked)}
+              className="mr-2 rounded border-gray-600"
+            />
+            Remember me
+          </label>
+        </div>
 
         <div className="flex space-x-4">
           <button
