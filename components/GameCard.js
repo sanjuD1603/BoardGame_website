@@ -65,6 +65,13 @@ export default function GameCard({ game, user, onDelete }) {
             Added by:{" "}
             {game.profiles?.username || game.profiles?.full_name || "Anonymous"}
           </p>
+          <p className="text-gray-500">
+            Owner:{" "}
+            {game.owner ||
+              game.profiles?.username ||
+              game.profiles?.full_name ||
+              "Anonymous"}
+          </p>
         </div>
       </div>
     </div>
