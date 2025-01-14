@@ -1,7 +1,75 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/router";
-import { searchBoardGame, getGameDetails } from "../lib/bggApi";
+import { searchBoardGame } from "../lib/bggApi";
+import { XMLParser } from "fast-xml-parser";
+
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  textNodeName: "@_value",
+  ignoreDeclaration: true,
+  removeNSPrefix: true,
+});
+
+async function retry(fn, retries = 3, delay = 1000) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries === 0) throw error;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return retry(fn, retries - 1, delay);
+  }
+}
+
+async function getGameDetails(gameId) {
+  try {
+    const detailsResponse = await retry(() =>
+      fetch(`https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`),
+    );
+    const detailsXml = await detailsResponse.text();
+    console.log("Details XML:", detailsXml); // Debug log
+    const detailsResult = parser.parse(detailsXml);
+    console.log("Parsed details:", detailsResult); // Debug log
+
+    // Handle both single item and array responses
+    const game = Array.isArray(detailsResult.items.item)
+      ? detailsResult.items.item[0]
+      : detailsResult.items.item;
+
+    if (!game) {
+      throw new Error("No game details found");
+    }
+
+    // Handle different name formats
+    let title = "";
+    if (Array.isArray(game.name)) {
+      const primaryName = game.name.find((n) => n["@_type"] === "primary");
+      title = primaryName ? primaryName["@_value"] : game.name[0]["@_value"];
+    } else if (game.name) {
+      title = game.name["@_value"];
+    }
+
+    // Clean up description - remove HTML tags if present
+    let description = game.description || "";
+    description = description.replace(/<[^>]*>/g, "");
+
+    return {
+      data: {
+        title: title || "",
+        description: description,
+        image_url: game.image || game.thumbnail || "",
+        min_players: game.minplayers?.["@_value"] || "1",
+        max_players: game.maxplayers?.["@_value"] || "1",
+        playing_time: game.playingtime?.["@_value"] || "30",
+        owner: "",
+      },
+    };
+  } catch (error) {
+    console.error("BGG API Error:", error);
+    return { error: "Failed to fetch game details" };
+  }
+}
 
 export default function AddGame({ user }) {
   const router = useRouter();
