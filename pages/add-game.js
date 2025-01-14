@@ -59,8 +59,7 @@ async function getGameDetails(gameId) {
         title: title || "",
         description: description,
         image_url: game.image || game.thumbnail || "",
-        min_players: game.minplayers?.["@_value"] || "1",
-        max_players: game.maxplayers?.["@_value"] || "1",
+        player_count: `${game.minplayers?.["@_value"] || "1"}-${game.maxplayers?.["@_value"] || "1"}`,
         playing_time: game.playingtime?.["@_value"] || "30",
         owner: "",
       },
@@ -81,8 +80,7 @@ export default function AddGame({ user }) {
     title: "",
     description: "",
     image_url: "",
-    min_players: "",
-    max_players: "",
+    player_count: "",
     playing_time: "",
     owner: "",
   });
@@ -126,7 +124,18 @@ export default function AddGame({ user }) {
         throw new Error(error);
       }
 
-      setGameData(data);
+      if (data) {
+        console.log("Setting game data:", data); // Debug log
+        setGameData({
+          title: data.title || "",
+          description: data.description || "",
+          image_url: data.image_url || "",
+          min_players: data.min_players || "1",
+          max_players: data.max_players || "1",
+          playing_time: data.playing_time || "30",
+          owner: "",
+        });
+      }
       setSearchResults([]); // Clear search results after selection
     } catch (error) {
       alert("Error fetching game details");
@@ -245,44 +254,28 @@ export default function AddGame({ user }) {
           <label className="block text-sm font-medium text-gray-700">
             Image URL
           </label>
-          <input
-            type="url"
-            name="image_url"
-            value={gameData.image_url}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Player Count (e.g., 2-4)
+              </label>
+              <input
+                type="text"
+                name="player_count"
+                value={gameData.player_count}
+                onChange={handleChange}
+                required
+                placeholder="e.g., 2-4"
+                pattern="\d+-\d+"
+                title="Please use format: min-max (e.g., 2-4)"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+            type="number" name="max_players" value={gameData.max_players}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Min Players
-            </label>
-            <input
-              type="number"
-              name="min_players"
-              value={gameData.min_players}
-              onChange={handleChange}
-              required
-              min="1"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Max Players
-            </label>
-            <input
-              type="number"
-              name="max_players"
-              value={gameData.max_players}
-              onChange={handleChange}
-              required
-              min="1"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
+            required min="1" className="mt-1 block w-full rounded-md
+            border-gray-300 shadow-sm focus:border-indigo-500
+            focus:ring-indigo-500" />
           </div>
 
           <div>
