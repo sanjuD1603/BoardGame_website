@@ -115,3 +115,6 @@ feature-*
 # Local Netlify folder
 .netlify
 
+# deploy file
+/deploy
+
