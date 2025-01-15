@@ -153,10 +153,19 @@ export default function AddGame({ user }) {
 
     try {
       setLoading(true);
+      // Parse player count range into min and max players
+      const [minPlayers, maxPlayers] = gameData.player_count
+        .split("-")
+        .map((num) => parseInt(num, 10));
+
       const gameDataToSubmit = {
         ...gameData,
         user_id: user.id,
         owner: gameData.owner.trim() || user.email,
+        min_players: minPlayers,
+        max_players: maxPlayers,
+        // Remove the player_count field as it's not in the database schema
+        player_count: undefined,
       };
 
       const { error } = await supabase.from("games").insert([gameDataToSubmit]);
