@@ -1,32 +1,134 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import GameCard from "../components/GameCard";
 import SearchBar from "../components/SearchBar";
+import GameFilters from "../components/GameFilters";
 
-export default function Home({ user }) {
+export default function Home({ user, filters, setFilters }) {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const loader = useRef(null);
+  const GAMES_PER_PAGE = 12;
+
+  // Extract unique owners from games
+  const uniqueOwners = useMemo(() => {
+    const owners = [...new Set(games.map((game) => game.owner))];
+    return owners.filter((owner) => owner); // Remove empty values
+  }, [games]);
 
   useEffect(() => {
-    fetchGames();
-  }, [searchTerm]); // Added searchTerm dependency to refresh when search changes
+    fetchGames(true);
+  }, [searchTerm, filters]); // Refresh when search or filters change
 
-  async function fetchGames() {
+  // Infinite scroll observer
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: "20px",
+      threshold: 1.0,
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMore && !loading) {
+        setPage((prev) => prev + 1);
+      }
+    }, options);
+
+    if (loader.current) {
+      observer.observe(loader.current);
+    }
+
+    return () => {
+      if (loader.current) {
+        observer.unobserve(loader.current);
+      }
+    };
+  }, [hasMore, loading]);
+
+  useEffect(() => {
+    if (!initialLoad && page > 0) {
+      fetchGames();
+    }
+  }, [page]);
+
+  const fetchGames = useCallback(async (isNewSearch = false) => {
+    if (isNewSearch) {
+      setPage(0);
+      setGames([]);
+      setHasMore(true);
+    }
     try {
       setLoading(true);
-      let query = supabase.from("games").select("*");
+      let query = supabase
+        .from("games")
+        .select("*", { count: "exact" });
 
       if (searchTerm) {
         query = query.ilike("title", `%${searchTerm}%`);
       }
 
-      const { data, error } = await query.order("created_at", {
+      // Add pagination
+      query = query
+        .order("created_at", { ascending: false })
+        .range(page * GAMES_PER_PAGE, (page + 1) * GAMES_PER_PAGE - 1);
+
+      const { data, error, count } = await query;
         ascending: false,
       });
 
       if (error) throw error;
-      setGames(data || []);
+
+      // Apply filters to the data
+      let filteredData = data || [];
+
+      if (filters.owner) {
+        filteredData = filteredData.filter(
+          (game) => game.owner === filters.owner,
+        );
+      }
+
+      if (filters.playerCount) {
+        filteredData = filteredData.filter((game) => {
+          const count = game.player_count;
+          switch (filters.playerCount) {
+            case "1":
+              return count.includes("1");
+            case "2":
+              return count.includes("2");
+            case "3-4":
+              return count.includes("3") || count.includes("4");
+            case "5+":
+              return count.split("-").some((num) => parseInt(num) >= 5);
+            default:
+              return true;
+          }
+        });
+      }
+
+      if (filters.playingTime) {
+        filteredData = filteredData.filter((game) => {
+          const time = parseInt(game.playing_time);
+          switch (filters.playingTime) {
+            case "short":
+              return time <= 30;
+            case "medium":
+              return time > 30 && time <= 60;
+            case "long":
+              return time > 60;
+            default:
+              return true;
+          }
+        });
+      }
+
+      const newGames = isNewSearch ? filteredData : [...games, ...filteredData];
+      setGames(newGames);
+      setHasMore(newGames.length < count);
+      setInitialLoad(false);
     } catch (error) {
       console.error("Error fetching games:", error);
     } finally {
@@ -41,13 +143,23 @@ export default function Home({ user }) {
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8">
+        <div className="sticky top-0 z-10 bg-gray-900 pb-6 shadow-lg">
         <h1 className="text-3xl font-bold text-gray-100 mb-8 text-center">
           Board Game Collection
         </h1>
 
-        <SearchBar onSearch={setSearchTerm} />
+        <div className="mb-6">
+          <SearchBar onSearch={setSearchTerm} />
+        </div>
 
-        {loading ? (
+        <GameFilters
+          filters={filters}
+          setFilters={setFilters}
+          owners={uniqueOwners}
+        />
+</div>
+
+{loading && initialLoad ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
@@ -68,6 +180,26 @@ export default function Home({ user }) {
             ))}
           </div>
         )}
+      
+      {/* Infinite scroll loader */}
+      {!initialLoad && hasMore && (
+        <div
+          ref={loader}
+          className="flex justify-center items-center py-4"
+        >
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
+      
+      {/* No results message */}
+      {!loading && games.length === 0 && (
+        <div className="flex flex-col items-center justify-center mt-12 px-4 text-center">
+          <div className="text-gray-400 text-xl font-semibold">No games found</div>
+          <p className="text-gray-500 mt-2">
+            Try adjusting your search filters or add some new games to your collection
+          </p>
+        </div>
+      )}
       </div>
     </div>
   );

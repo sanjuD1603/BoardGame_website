@@ -11,6 +11,12 @@ export const devConfig = {
 
 function MyApp({ Component, pageProps }) {
   const [user, setUser] = useState(null);
+  const [filters, setFilters] = useState({
+    owner: "",
+    playerCount: "",
+    playingTime: "",
+    // We'll add gameType later
+  });
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
