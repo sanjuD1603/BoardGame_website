@@ -77,8 +77,7 @@ export default function Home({ user, filters, setFilters }) {
         .range(page * GAMES_PER_PAGE, (page + 1) * GAMES_PER_PAGE - 1);
 
       const { data, error, count } = await query;
-        ascending: false,
-      });
+        
 
       if (error) throw error;
 
