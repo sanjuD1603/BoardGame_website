@@ -1,8 +1,13 @@
 import { useState } from "react";
-import { deleteGame } from "../lib/supabase";
+import { deleteGame, supabase } from "../lib/supabase";
 import EditGameModal from "./EditGameModal";
 
-export default function GameCard({ game, user, onDelete, onUpdate }) {
+export default function GameCard({
+  game = {},
+  user = null,
+  onDelete = () => {},
+  onUpdate = () => {},
+}) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
