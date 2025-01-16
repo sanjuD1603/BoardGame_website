@@ -4,7 +4,11 @@ import GameCard from "../components/GameCard";
 import SearchBar from "../components/SearchBar";
 import GameFilters from "../components/GameFilters";
 
-export default function Home({ user, filters, setFilters }) {
+export default function Home({
+  user = null,
+  filters = {},
+  setFilters = () => {},
+}) {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,12 +175,19 @@ export default function Home({ user, filters, setFilters }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {games.map((game) => (
+            {games?.map((game) => (
               <GameCard
-                key={game.id}
+                key={game?.id}
                 game={game}
                 user={user}
                 onDelete={handleDeleteGame}
+                onUpdate={(updatedGame) => {
+                  setGames((prevGames) =>
+                    prevGames.map((g) =>
+                      g.id === updatedGame.id ? updatedGame : g,
+                    ),
+                  );
+                }}
               />
             ))}
           </div>
