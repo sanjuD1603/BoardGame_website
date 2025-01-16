@@ -24,15 +24,38 @@ async function retry(fn, retries = 3, delay = 1000) {
 
 async function getGameDetails(gameId) {
   try {
-    const detailsResponse = await retry(() =>
-      fetch(`https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`),
-    );
-    const detailsXml = await detailsResponse.text();
-    console.log("Details XML:", detailsXml); // Debug log
-    const detailsResult = parser.parse(detailsXml);
-    console.log("Parsed details:", detailsResult); // Debug log
+    // Function to check if the response contains an error
+    const hasError = (result) => {
+      return result?.items?.item?.error || false;
+    };
 
-    // Handle both single item and array responses
+    // Function to fetch game details
+    const fetchDetails = async () => {
+      const response = await fetch(
+        `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`,
+      );
+      const xml = await response.text();
+      console.log("Details XML:", xml);
+      return parser.parse(xml);
+    };
+
+    // Initial fetch
+    let detailsResult = await fetchDetails();
+
+    // If we get an error, wait and retry up to 3 times
+    let retries = 3;
+    while (hasError(detailsResult) && retries > 0) {
+      console.log("Waiting for BGG to process request...");
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+      detailsResult = await fetchDetails();
+      retries--;
+    }
+
+    // If we still have an error after retries, throw an error
+    if (hasError(detailsResult)) {
+      throw new Error("Failed to get game details after retries");
+    }
+
     const game = Array.isArray(detailsResult.items.item)
       ? detailsResult.items.item[0]
       : detailsResult.items.item;
@@ -125,7 +148,7 @@ export default function AddGame({ user }) {
       }
 
       if (data) {
-        console.log("Setting game data:", data); // Debug log
+        console.log("Setting game data:", data);
         setGameData({
           title: data.title || "",
           description: data.description || "",
@@ -135,7 +158,7 @@ export default function AddGame({ user }) {
           owner: "",
         });
       }
-      setSearchResults([]); // Clear search results after selection
+      setSearchResults([]);
     } catch (error) {
       alert("Error fetching game details");
       console.error(error);
@@ -158,14 +181,16 @@ export default function AddGame({ user }) {
         .split("-")
         .map((num) => parseInt(num, 10));
 
+      // Prepare the game data without player_count field
       const gameDataToSubmit = {
-        ...gameData,
-        user_id: user.id,
-        owner: gameData.owner.trim() || user.email,
+        title: gameData.title,
+        description: gameData.description,
+        image_url: gameData.image_url,
         min_players: minPlayers,
         max_players: maxPlayers,
-        // Remove the player_count field as it's not in the database schema
-        player_count: undefined,
+        playing_time: parseInt(gameData.playing_time, 10),
+        user_id: user.id,
+        owner: gameData.owner.trim() || user.email,
       };
 
       const { error } = await supabase.from("games").insert([gameDataToSubmit]);
