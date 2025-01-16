@@ -62,9 +62,9 @@ const GameFilters = ({ filters, setFilters, owners }) => {
             className="w-full bg-gray-700 rounded-md px-3 py-2 text-white"
           >
             <option value="">Any Length</option>
-            <option value="short">Quick (≤ 30min)</option>
+            <option value="short">Quick (&lt;= 30min)</option>
             <option value="medium">Medium (30-60min)</option>
-            <option value="long">Long (> 60min)</option>
+            <option value="long">Long (&gt; 60min)</option>
           </select>
         </div>
 
