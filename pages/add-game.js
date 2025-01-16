@@ -105,7 +105,7 @@ export default function AddGame({ user }) {
     image_url: "",
     player_count: "",
     playing_time: "",
-    owner: "",
+    owner: user?.user_metadata?.full_name || user?.email || "",
   });
 
   const handleChange = (e) => {
@@ -155,7 +155,7 @@ export default function AddGame({ user }) {
           image_url: data.image_url || "",
           player_count: data.player_count || "2-4",
           playing_time: data.playing_time || "30",
-          owner: "",
+          owner: user?.user_metadata?.full_name || user?.email || "",
         });
       }
       setSearchResults([]);
