@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { deleteGame } from "../lib/supabase";
+import EditGameModal from "./EditGameModal";
 
-export default function GameCard({ game, user, onDelete }) {
+export default function GameCard({ game, user, onDelete, onUpdate }) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this game?")) return;
@@ -54,8 +56,41 @@ export default function GameCard({ game, user, onDelete }) {
       </div>
 
       <div className="p-4">
-        <h3 className="text-xl font-bold text-gray-100 mb-2">{game.title}</h3>
+        <div className="flex justify-between items-start mb-2">
+          <h2 className="text-xl font-bold text-gray-100">{game.title}</h2>
+          {user &&
+            game.owner === (user.user_metadata?.full_name || user.email) && (
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="text-gray-400 hover:text-white"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </button>
+            )}
+        </div>
+
         <p className="text-gray-300 mb-2">{game.description}</p>
+
+        {game.tags && game.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {game.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-indigo-900 text-white px-2 py-1 rounded-md text-xs"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="text-sm text-gray-400">
           <p>
             Players: {game.min_players} - {game.max_players}
@@ -70,6 +105,17 @@ export default function GameCard({ game, user, onDelete }) {
           </p>
         </div>
       </div>
+
+      <EditGameModal
+        game={game}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onUpdate={(updatedGame) => {
+          if (onUpdate) {
+            onUpdate({ ...game, ...updatedGame });
+          }
+        }}
+      />
     </div>
   );
 }

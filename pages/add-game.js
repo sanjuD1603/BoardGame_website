@@ -12,6 +12,22 @@ const parser = new XMLParser({
   removeNSPrefix: true,
 });
 
+const predefinedTags = [
+  "Strategy",
+  "Family",
+  "Party",
+  "Card Game",
+  "Cooperative",
+  "Deck Building",
+  "Worker Placement",
+  "Area Control",
+  "Dice Rolling",
+  "Educational",
+  "Fantasy",
+  "Sci-Fi",
+  "Adventure",
+];
+
 async function retry(fn, retries = 3, delay = 1000) {
   try {
     return await fn();
@@ -24,12 +40,10 @@ async function retry(fn, retries = 3, delay = 1000) {
 
 async function getGameDetails(gameId) {
   try {
-    // Function to check if the response contains an error
     const hasError = (result) => {
       return result?.items?.item?.error || false;
     };
 
-    // Function to fetch game details
     const fetchDetails = async () => {
       const response = await fetch(
         `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`,
@@ -39,19 +53,16 @@ async function getGameDetails(gameId) {
       return parser.parse(xml);
     };
 
-    // Initial fetch
     let detailsResult = await fetchDetails();
 
-    // If we get an error, wait and retry up to 3 times
     let retries = 3;
     while (hasError(detailsResult) && retries > 0) {
       console.log("Waiting for BGG to process request...");
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       detailsResult = await fetchDetails();
       retries--;
     }
 
-    // If we still have an error after retries, throw an error
     if (hasError(detailsResult)) {
       throw new Error("Failed to get game details after retries");
     }
@@ -64,7 +75,6 @@ async function getGameDetails(gameId) {
       throw new Error("No game details found");
     }
 
-    // Handle different name formats
     let title = "";
     if (Array.isArray(game.name)) {
       const primaryName = game.name.find((n) => n["@_type"] === "primary");
@@ -73,7 +83,6 @@ async function getGameDetails(gameId) {
       title = game.name["@_value"];
     }
 
-    // Clean up description - remove HTML tags if present
     let description = game.description || "";
     description = description.replace(/<[^>]*>/g, "");
 
@@ -85,6 +94,7 @@ async function getGameDetails(gameId) {
         player_count: `${game.minplayers?.["@_value"] || "1"}-${game.maxplayers?.["@_value"] || "1"}`,
         playing_time: game.playingtime?.["@_value"] || "30",
         owner: "",
+        tags: [],
       },
     };
   } catch (error) {
@@ -106,6 +116,7 @@ export default function AddGame({ user }) {
     player_count: "",
     playing_time: "",
     owner: user?.user_metadata?.full_name || user?.email || "",
+    tags: [],
   });
 
   const handleChange = (e) => {
@@ -156,6 +167,7 @@ export default function AddGame({ user }) {
           player_count: data.player_count || "2-4",
           playing_time: data.playing_time || "30",
           owner: user?.user_metadata?.full_name || user?.email || "",
+          tags: [],
         });
       }
       setSearchResults([]);
@@ -176,12 +188,10 @@ export default function AddGame({ user }) {
 
     try {
       setLoading(true);
-      // Parse player count range into min and max players
       const [minPlayers, maxPlayers] = gameData.player_count
         .split("-")
         .map((num) => parseInt(num, 10));
 
-      // Prepare the game data without player_count field
       const gameDataToSubmit = {
         title: gameData.title,
         description: gameData.description,
@@ -191,6 +201,7 @@ export default function AddGame({ user }) {
         playing_time: parseInt(gameData.playing_time, 10),
         user_id: user.id,
         owner: gameData.owner.trim() || user.email,
+        tags: gameData.tags,
       };
 
       const { error } = await supabase.from("games").insert([gameDataToSubmit]);
@@ -208,7 +219,6 @@ export default function AddGame({ user }) {
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Add New Board Game</h1>
 
-      {/* BGG Search Section */}
       <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4">Search BoardGameGeek</h2>
         <div className="flex flex-col gap-2">
@@ -345,6 +355,51 @@ export default function AddGame({ user }) {
           <p className="mt-1 text-sm text-gray-500">
             If left empty, your email will be used as owner information
           </p>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Tags</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {gameData.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-indigo-600 text-white px-2 py-1 rounded-md text-sm flex items-center"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGameData((prev) => ({
+                      ...prev,
+                      tags: prev.tags.filter((_, i) => i !== index),
+                    }));
+                  }}
+                  className="ml-2 hover:text-red-300"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {predefinedTags
+              .filter((tag) => !gameData.tags.includes(tag))
+              .map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    setGameData((prev) => ({
+                      ...prev,
+                      tags: [...prev.tags, tag],
+                    }));
+                  }}
+                  className="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-md text-sm"
+                >
+                  + {tag}
+                </button>
+              ))}
+          </div>
         </div>
 
         <button
