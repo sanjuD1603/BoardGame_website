@@ -10,20 +10,20 @@ export default function GameCard({ game, user, onDelete, onUpdate }) {
     if (!confirm("Are you sure you want to delete this game?")) return;
 
     setIsDeleting(true);
-    const { error } = await deleteGame(game.id, user.id);
+    const { error } = await deleteGame(game?.id, user?.id);
 
     if (error) {
       alert("Error deleting game");
       console.error("Error deleting game:", error);
     } else {
-      onDelete(game.id);
+      onDelete(game?.id);
     }
     setIsDeleting(false);
   };
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden relative group">
-      {game.image_url && (
+      {game?.image_url && (
         <img
           className="w-full h-48 object-cover"
           src={game.image_url}
@@ -32,7 +32,7 @@ export default function GameCard({ game, user, onDelete, onUpdate }) {
       )}
 
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        {user && user.id === game.user_id && (
+        {user && user?.id === game?.user_id && (
           <button
             onClick={handleDelete}
             disabled={isDeleting}
@@ -57,9 +57,9 @@ export default function GameCard({ game, user, onDelete, onUpdate }) {
 
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h2 className="text-xl font-bold text-gray-100">{game.title}</h2>
+          <h2 className="text-xl font-bold text-gray-100">{game?.title}</h2>
           {user &&
-            game.owner === (user.user_metadata?.full_name || user.email) && (
+            game?.owner === (user?.user_metadata?.full_name || user?.email) && (
               <button
                 onClick={() => setIsEditModalOpen(true)}
                 className="text-gray-400 hover:text-white"
@@ -76,9 +76,9 @@ export default function GameCard({ game, user, onDelete, onUpdate }) {
             )}
         </div>
 
-        <p className="text-gray-300 mb-2">{game.description}</p>
+        <p className="text-gray-300 mb-2">{game?.description}</p>
 
-        {game.tags && game.tags.length > 0 && (
+        {game?.tags && game?.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {game.tags.map((tag, index) => (
               <span
@@ -93,14 +93,14 @@ export default function GameCard({ game, user, onDelete, onUpdate }) {
 
         <div className="text-sm text-gray-400">
           <p>
-            Players: {game.min_players} - {game.max_players}
+            Players: {game?.min_players} - {game?.max_players}
           </p>
-          <p>Playing Time: {game.playing_time} minutes</p>
+          <p>Playing Time: {game?.playing_time} minutes</p>
           <p className="text-gray-500">
             Owner:{" "}
-            {game.owner ||
-              game.profiles?.username ||
-              game.profiles?.full_name ||
+            {game?.owner ||
+              game?.profiles?.username ||
+              game?.profiles?.full_name ||
               "Anonymous"}
           </p>
         </div>
