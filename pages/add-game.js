@@ -141,7 +141,16 @@ export default function AddGame({ user }) {
         return;
       }
 
-      setSearchResults(matches || []);
+      // Ensure we have the correct structure for each game result
+      const processedMatches =
+        matches?.map((game) => ({
+          id: game["@_id"],
+          name: game.name["@_value"] || game.name,
+          year: game.yearpublished?.["@_value"] || "",
+        })) || [];
+
+      console.log("Processed matches:", processedMatches);
+      setSearchResults(processedMatches);
     } catch (error) {
       alert("Error searching for game");
       console.error(error);
@@ -247,17 +256,13 @@ export default function AddGame({ user }) {
               <ul className="divide-y divide-gray-200">
                 {searchResults.map((game) => (
                   <li
-                    key={game["@_id"]}
+                    key={game.id}
                     className="p-3 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleSelectGame(game["@_id"])}
+                    onClick={() => handleSelectGame(game.id)}
                   >
                     <div className="flex justify-between">
-                      <span className="font-medium">
-                        {game.name["@_value"]}
-                      </span>
-                      <span className="text-gray-500">
-                        {game.yearpublished?.["@_value"]}
-                      </span>
+                      <span className="font-medium">{game.name}</span>
+                      <span className="text-gray-500">{game.year}</span>
                     </div>
                   </li>
                 ))}
