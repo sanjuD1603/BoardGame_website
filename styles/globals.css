@@ -125,3 +125,12 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-600 rounded-full hover:bg-gray-500;
 }
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

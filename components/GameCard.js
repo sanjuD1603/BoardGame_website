@@ -10,6 +10,7 @@ export default function GameCard({
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this game?")) return;
@@ -79,6 +80,53 @@ export default function GameCard({
                 </svg>
               </button>
             )}
+        </div>
+        <div className="mb-2">
+          <p
+            className={`text-gray-300 ${
+              !isDescriptionExpanded ? "line-clamp-2" : ""
+            }`}
+          >
+            {game?.description}
+          </p>
+          {game?.description?.length > 100 && (
+            <button
+              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+              className="text-indigo-400 hover:text-indigo-300 text-sm mt-1 flex items-center"
+            >
+              {isDescriptionExpanded ? (
+                <>
+                  Show Less
+                  <svg
+                    className="w-4 h-4 ml-1"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M5 15l7-7 7 7"></path>
+                  </svg>
+                </>
+              ) : (
+                <>
+                  Read More
+                  <svg
+                    className="w-4 h-4 ml-1"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         <p className="text-gray-300 mb-2">{game?.description}</p>
