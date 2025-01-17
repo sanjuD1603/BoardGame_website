@@ -141,16 +141,8 @@ export default function AddGame({ user }) {
         return;
       }
 
-      // Ensure we have the correct structure for each game result
-      const processedMatches =
-        matches?.map((game) => ({
-          id: game["@_id"],
-          name: game.name["@_value"] || game.name,
-          year: game.yearpublished?.["@_value"] || "",
-        })) || [];
-
-      console.log("Processed matches:", processedMatches);
-      setSearchResults(processedMatches);
+      console.log("Search results:", matches);
+      setSearchResults(matches || []);
     } catch (error) {
       alert("Error searching for game");
       console.error(error);
