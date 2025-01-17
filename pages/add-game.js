@@ -45,9 +45,10 @@ async function getGameDetails(gameId) {
     };
 
     const fetchDetails = async () => {
-      const response = await fetch(
-        `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`,
-      );
+      console.log("Fetching details for gameId:", gameId); // Debug log
+      const url = `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}&stats=1`;
+      console.log("API URL:", url); // Debug log
+      const response = await fetch(url);
       const xml = await response.text();
       console.log("Details XML:", xml);
       return parser.parse(xml);
@@ -151,6 +152,7 @@ export default function AddGame({ user }) {
 
   const handleSelectGame = async (gameId) => {
     try {
+      console.log("Selected game ID:", gameId); // Debug log
       setSearching(true);
       const { data, error } = await getGameDetails(gameId);
 
