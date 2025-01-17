@@ -15,6 +15,7 @@ export default function Home({
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [activeFilters, setActiveFilters] = useState({});
   const loader = useRef(null);
   const GAMES_PER_PAGE = 12;
 
@@ -51,16 +52,16 @@ export default function Home({
         // Apply filters to the data
         let filteredData = data || [];
 
-        if (filters.owner) {
+        if (activeFilters.owner) {
           filteredData = filteredData.filter(
-            (game) => game.owner === filters.owner,
+            (game) => game.owner === activeFilters.owner,
           );
         }
 
-        if (filters.playerCount) {
+        if (activeFilters.playerCount) {
           filteredData = filteredData.filter((game) => {
             const count = game.player_count;
-            switch (filters.playerCount) {
+            switch (activeFilters.playerCount) {
               case "1":
                 return count.includes("1");
               case "2":
@@ -75,10 +76,10 @@ export default function Home({
           });
         }
 
-        if (filters.playingTime) {
+        if (activeFilters.playingTime) {
           filteredData = filteredData.filter((game) => {
             const time = parseInt(game.playing_time);
-            switch (filters.playingTime) {
+            switch (activeFilters.playingTime) {
               case "short":
                 return time <= 30;
               case "medium":
@@ -103,12 +104,12 @@ export default function Home({
         setLoading(false);
       }
     },
-    [searchTerm, filters, games, page],
+    [searchTerm, activeFilters, games, page],
   );
 
   useEffect(() => {
     fetchGames(true);
-  }, [searchTerm, filters]); // Refresh when search or filters change
+  }, [searchTerm]); // Only refresh when search changes
 
   // Infinite scroll observer
   useEffect(() => {
@@ -157,11 +158,24 @@ export default function Home({
             <SearchBar onSearch={setSearchTerm} />
           </div>
 
-          <GameFilters
-            filters={filters}
-            setFilters={setFilters}
-            owners={uniqueOwners}
-          />
+          <div className="space-y-4">
+            <GameFilters
+              filters={filters}
+              setFilters={setFilters}
+              owners={uniqueOwners}
+            />
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  setActiveFilters(filters);
+                  fetchGames(true);
+                }}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500 transition-colors"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
         </div>
 
         {loading && initialLoad ? (
