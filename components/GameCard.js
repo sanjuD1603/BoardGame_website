@@ -81,14 +81,16 @@ export default function GameCard({
               </button>
             )}
         </div>
+
         <div className="mb-2">
-          <p
-            className={`text-gray-300 ${
-              !isDescriptionExpanded ? "line-clamp-2" : ""
-            }`}
+          <div
+            className={`relative ${!isDescriptionExpanded ? "h-[3em] overflow-hidden" : ""}`}
           >
-            {game?.description}
-          </p>
+            <p className="text-gray-300">{game?.description}</p>
+            {!isDescriptionExpanded && (
+              <div className="absolute bottom-0 w-full h-8 bg-gradient-to-t from-gray-800 to-transparent"></div>
+            )}
+          </div>
           {game?.description?.length > 100 && (
             <button
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -128,8 +130,6 @@ export default function GameCard({
             </button>
           )}
         </div>
-
-        <p className="text-gray-300 mb-2">{game?.description}</p>
 
         {game?.tags && game?.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
