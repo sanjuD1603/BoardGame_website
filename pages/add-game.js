@@ -247,13 +247,17 @@ export default function AddGame({ user }) {
               <ul className="divide-y divide-gray-200">
                 {searchResults.map((game) => (
                   <li
-                    key={game.id}
+                    key={game["@_id"]}
                     className="p-3 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleSelectGame(game.id)}
+                    onClick={() => handleSelectGame(game["@_id"])}
                   >
                     <div className="flex justify-between">
-                      <span className="font-medium">{game.name}</span>
-                      <span className="text-gray-500">{game.year}</span>
+                      <span className="font-medium">
+                        {game.name["@_value"]}
+                      </span>
+                      <span className="text-gray-500">
+                        {game.yearpublished?.["@_value"]}
+                      </span>
                     </div>
                   </li>
                 ))}
