@@ -16,6 +16,7 @@ export default function Home({
   const [hasMore, setHasMore] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [activeFilters, setActiveFilters] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const loader = useRef(null);
   const GAMES_PER_PAGE = 12;
 
@@ -153,28 +154,53 @@ export default function Home({
           <h1 className="text-3xl font-bold text-gray-100 mb-8 text-center">
             Board Game Collection
           </h1>
+<div className="mb-6">
+  <SearchBar onSearch={setSearchTerm} />
+</div>
 
-          <div className="mb-6">
-            <SearchBar onSearch={setSearchTerm} />
-          </div>
+<div className="relative">
+  <button
+    onClick={() => setIsFilterOpen(!isFilterOpen)}
+    className="w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors flex items-center justify-between"
+  >
+    <span>Filters</span>
+    <svg
+      className={`w-5 h-5 transform transition-transform ${
+        isFilterOpen ? 'rotate-180' : ''
+      }`}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </button>
 
-          <div className="space-y-4">
-            <GameFilters
-              filters={filters}
-              setFilters={setFilters}
-              owners={uniqueOwners}
-            />
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  setActiveFilters(filters);
-                  fetchGames(true);
-                }}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500 transition-colors"
-              >
-                Apply Filters
-              </button>
-            </div>
+  {isFilterOpen && (
+    <div className="absolute w-full mt-2 p-4 bg-gray-800 rounded-md shadow-lg z-20 space-y-4">
+      <GameFilters
+        filters={filters}
+        setFilters={setFilters}
+        owners={uniqueOwners}
+      />
+      <div className="flex justify-center">
+        <button
+          onClick={() => {
+            setActiveFilters(filters);
+            fetchGames(true);
+            setIsFilterOpen(false);
+          }}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500 transition-colors"
+        >
+          Apply Filters
+        </button>
+      </div>
+    </div>
+  )}
+</div>
           </div>
         </div>
 
