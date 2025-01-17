@@ -5,7 +5,9 @@ export default function SearchBar({ onSearch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if(searchTerm.trim()){
     onSearch(searchTerm);
+    }
   };
 
   return (
@@ -18,12 +20,16 @@ export default function SearchBar({ onSearch }) {
           placeholder="Search board games..."
           className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <button
+        {searchTerm.trim() && (
+          <button
           type="submit"
           className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           Search
         </button>
+        )
+        }
+        
       </div>
     </form>
   );
